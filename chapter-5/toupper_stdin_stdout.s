@@ -1,11 +1,4 @@
-# PURPOSE: This program converts an input file to an output file with all letters converted to uppercase.
-# PROCESSING: 1) Open the input file
-#             2) Open the output file
-#             3) While we're not at the end of the input file
-#                a) read part of file into our memory buffer
-#                b) go through each byte of memory
-#                      if the byte is a lower-case letter convert it to uppercase
-#                c) write the memory buffer to output file
+# PURPOSE: This program converts everything written to stdin to uppercase to stdout
 
 .section .data
 
@@ -30,7 +23,7 @@
 # system call interrupt
 .equ LINUX_SYSCALL, 0x80
 .equ END_OF_FILE, 0
-.equ NUMBER_ARGUMENTS, 2
+.equ NUMBER_ARGUMENTS, 0
 
 .section .bss
 # Buffer: this is where the data is loaded into from the data file and written from into the output file. This should
@@ -46,8 +39,6 @@
 .equ ST_FD_OUT, -8
 .equ ST_ARGC, 0 # number of arguments
 .equ ST_ARGV_0, 4 # name of program
-.equ ST_ARGV_1, 8 # input file name
-.equ ST_ARGV_2, 12 # output file name
 
 .globl _start
 _start:
@@ -59,16 +50,9 @@ movl %esp, %ebp
 subl $ST_SIZE_RESERVE, %esp
 
 open_files:
-open_fd_in:
-    ###OPEN INPUT FILE###
-    movl $SYS_OPEN, %eax
-    movl ST_ARGV_1(%ebp), %ebx
-    movl $O_RDONLY, %ecx
-    movl $0666, %edx # This doesn't really matter for reading
-    int $LINUX_SYSCALL
 
 store_fd_in:
-    movl %eax, ST_FD_IN(%ebp)
+    movl $STDIN, ST_FD_IN(%ebp)
 
 store_fd_out:
     movl $STDOUT, ST_FD_OUT(%ebp)
@@ -107,14 +91,6 @@ continue_read_loop:
     jmp read_loop_begin
 
 end_loop:
-    ###CLOSE THE FILES###
-    movl $SYS_CLOSE, %eax
-    movl ST_FD_OUT(%ebp), %ebx
-    int $LINUX_SYSCALL
-
-    movl $SYS_CLOSE, %eax
-    movl ST_FD_IN(%ebp), %ebx
-    int $LINUX_SYSCALL
 
 ##EXIT@@@
 movl $SYS_EXIT, %eax
