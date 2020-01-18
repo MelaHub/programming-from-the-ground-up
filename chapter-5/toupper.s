@@ -21,7 +21,7 @@
 
 # options for file open
 .equ O_RDONLY, 0
-.equ O_CREAT_WRONLY_TRUNC, 0310
+.equ O_CREAT_WRONLY_TRUNC, 03101
 
 # standard file descriptors
 .equ STDIN, 0
@@ -41,13 +41,14 @@
 
 .section .text
 
+#STACK POSITIONS
 .equ ST_SIZE_RESERVE, 8
 .equ ST_FD_IN, -4
 .equ ST_FD_OUT, -8
-.equ ST_ARGC, 0 # Number of arguments
-.equ ST_ARGV_0, 4 # Name of the program
-.equ ST_ARGV_1, 8 # Input file name
-.equ ST_ARGV_2, 12 # Output file name
+.equ ST_ARGC, 0 # number of arguments
+.equ ST_ARGV_0, 4 # name of program
+.equ ST_ARGV_1, 8 # input file name
+.equ ST_ARGV_2, 12 # output file name
 
 .globl _start
 _start:
@@ -169,7 +170,7 @@ convert_to_upper:
         cmpb $LOWERCASE_A, %cl
         jl next_byte
         cmpb $LOWERCASE_Z, %cl
-        jl next_byte
+        jg next_byte
 
         # otherwise convert the byte to uppercase
         addb $UPPER_CONVERSION, %cl
