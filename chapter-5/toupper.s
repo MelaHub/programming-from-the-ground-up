@@ -34,7 +34,7 @@
 .equ NUMBER_ARGUMENTS, 2
 
 .section .bss
-# Buffer: this is where the data is loaded into from the data fil and written from into the ourput file. This should
+# Buffer: this is where the data is loaded into from the data file and written from into the output file. This should
 # never exceed 16000
 .equ BUFFER_SIZE, 500
 .lcomm BUFFER_DATA, BUFFER_SIZE
@@ -123,6 +123,7 @@ end_loop:
 
     movl $SYS_CLOSE, %eax
     movl ST_FD_IN(%ebp), %ebx
+    int $LINUX_SYSCALL
 
 ##EXIT@@@
 movl $SYS_EXIT, %eax
