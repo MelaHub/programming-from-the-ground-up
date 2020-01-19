@@ -1,4 +1,12 @@
-# PURPOSE: This program converts everything written to stdin to uppercase to stdout
+# PURPOSE: This program converts an input file to an output file with all letters converted to uppercase.
+
+# PROCESSING: 1) Open the input file
+#             2) Open the output file
+#             3) While we're not at the end of the input file
+#                a) read part of file into our memory buffer
+#                b) go through each byte of memory
+#                      if the byte is a lower-case letter convert it to uppercase
+#                c) write the memory buffer to output file
 
 .section .data
 
@@ -23,22 +31,24 @@
 # system call interrupt
 .equ LINUX_SYSCALL, 0x80
 .equ END_OF_FILE, 0
-.equ NUMBER_ARGUMENTS, 0
+.equ NUMBER_ARGUMENTS, 2
 
 .section .bss
 # Buffer: this is where the data is loaded into from the data file and written from into the output file. This should
 # never exceed 16000
 .equ BUFFER_SIZE, 500
 .lcomm BUFFER_DATA, BUFFER_SIZE
+.equ FILE_DESCRIPTOR_SIZE, 4
+.lcomm ST_FD_IN, FILE_DESCRIPTOR_SIZE
+.lcomm ST_FD_OUT, FILE_DESCRIPTOR_SIZE
 
 .section .text
 
 #STACK POSITIONS
-.equ ST_SIZE_RESERVE, 8
-.equ ST_FD_IN, -4
-.equ ST_FD_OUT, -8
 .equ ST_ARGC, 0 # number of arguments
 .equ ST_ARGV_0, 4 # name of program
+.equ ST_ARGV_1, 8 # input file name
+.equ ST_ARGV_2, 12 # output file name
 
 .globl _start
 _start:
@@ -46,23 +56,35 @@ _start:
 # save the stack pointer
 movl %esp, %ebp
 
-# Allocate space for our file descriptors on the stack
-subl $ST_SIZE_RESERVE, %esp
-
 open_files:
+open_fd_in:
+    ###OPEN INPUT FILE###
+    movl $SYS_OPEN, %eax
+    movl ST_ARGV_1(%ebp), %ebx
+    movl $O_RDONLY, %ecx
+    movl $0666, %edx # This doesn't really matter for reading
+    int $LINUX_SYSCALL
 
 store_fd_in:
-    movl $STDIN, ST_FD_IN(%ebp)
+    movl %eax, ST_FD_IN
+
+open_fd_out:
+    ###OPEN OUTPUT FILE###
+    movl $SYS_OPEN, %eax
+    movl ST_ARGV_2(%ebp), %ebx
+    movl $O_CREAT_WRONLY_TRUNC, %ecx
+    movl $0666, %edx # Permission set for the new file if it's created
+    int $LINUX_SYSCALL
 
 store_fd_out:
-    movl $STDOUT, ST_FD_OUT(%ebp)
+    movl %eax, ST_FD_OUT
 
 ###BEGIN MAIN LOOP###
 read_loop_begin:
     
     ###READ IN A BLOCK FROM THE INPUT FILE###
     movl $SYS_READ, %eax
-    movl ST_FD_IN(%ebp), %ebx
+    movl ST_FD_IN, %ebx
     movl $BUFFER_DATA, %ecx
     movl $BUFFER_SIZE, %edx
     int $LINUX_SYSCALL
@@ -83,7 +105,7 @@ continue_read_loop:
     ###WRITE THE BLOCK OUT TO THE OUTPUT FILE###
     movl %eax, %edx
     movl $SYS_WRITE, %eax
-    movl ST_FD_OUT(%ebp), %ebx
+    movl ST_FD_OUT, %ebx
     movl $BUFFER_DATA, %ecx
     int $LINUX_SYSCALL
 
@@ -91,6 +113,14 @@ continue_read_loop:
     jmp read_loop_begin
 
 end_loop:
+    ###CLOSE THE FILES###
+    movl $SYS_CLOSE, %eax
+    movl ST_FD_OUT, %ebx
+    int $LINUX_SYSCALL
+
+    movl $SYS_CLOSE, %eax
+    movl ST_FD_IN, %ebx
+    int $LINUX_SYSCALL
 
 ##EXIT@@@
 movl $SYS_EXIT, %eax

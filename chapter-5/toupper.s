@@ -56,7 +56,7 @@ _start:
 # save the stack pointer
 movl %esp, %ebp
 
-# Allocate space for out file descriptors on the stack
+# Allocate space for our file descriptors on the stack
 subl $ST_SIZE_RESERVE, %esp
 
 open_files:
