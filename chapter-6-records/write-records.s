@@ -70,7 +70,7 @@ _start:
   # copy the stack pointer to %ebp
   movl %esp, %ebp
   # allocate space to hold the file descriptor
-  subl $4, $esp
+  subl $4, %esp
 
   # open the file
   movl $SYS_OPEN, %eax
@@ -84,19 +84,19 @@ _start:
 
   # write the first record
   pushl ST_FILE_DESCRIPTOR(%ebp)
-  pusl $record1
+  pushl $record1
   call write_record
   addl $8, %esp
 
   # write the second record
   pushl ST_FILE_DESCRIPTOR(%ebp)
-  pusl $record2
+  pushl $record2
   call write_record
   addl $8, %esp
 
   # write the third record
   pushl ST_FILE_DESCRIPTOR(%ebp)
-  pusl $record3
+  pushl $record3
   call write_record
   addl $8, %esp
 
