@@ -1,12 +1,5 @@
-# PURPOSE: This program converts an input file to an output file with all letters converted to uppercase.
-
-# PROCESSING: 1) Open the input file
-#             2) Open the output file
-#             3) While we're not at the end of the input file
-#                a) read part of file into our memory buffer
-#                b) go through each byte of memory
-#                      if the byte is a lower-case letter convert it to uppercase
-#                c) write the memory buffer to output file
+# PURPOSE: This program converts an input file to an output file with all letters converted to uppercase if the input
+# filename and the output filename are given as input; otherwise converts stdin to uppercase to stdout
 
 .section .data
 
@@ -31,7 +24,7 @@
 # system call interrupt
 .equ LINUX_SYSCALL, 0x80
 .equ END_OF_FILE, 0
-.equ NUMBER_ARGUMENTS, 2
+.equ NUMBER_ARGUMENTS, 3
 
 .section .bss
 # Buffer: this is where the data is loaded into from the data file and written from into the output file. This should
@@ -50,8 +43,6 @@
 .equ ST_ARGV_1, 8 # input file name
 .equ ST_ARGV_2, 12 # output file name
 
-miao: .ascii "ciao\0"
-miao_end: .equ miao_len, miao_end - miao
 .globl _start
 _start:
 ###INITIALIZE PROGRAM###
@@ -60,17 +51,6 @@ movl %esp, %ebp
 
 # Allocate space for our file descriptors on the stack
 subl $ST_SIZE_RESERVE, %esp
-
-movl $SYS_WRITE, %eax
-movl $STDOUT, %ebx
-movl ST_ARGC(%ebp), %ecx
-movl $4, %edx
-int $LINUX_SYSCALL
-# movl $SYS_WRITE, %eax
-# movl $STDOUT, %ebx
-# movl $miao, %ecx
-# movl $miao_len, %edx
-# int $LINUX_SYSCALL
 
 # If no arguments then use STDIN STDOUT
 cmpl $NUMBER_ARGUMENTS, ST_ARGC(%ebp)
