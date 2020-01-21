@@ -45,7 +45,8 @@
 
 .globl _start
 
-no_file_found_msg: .ascii "File non trovato\0"
+file_not_found_msg: .ascii "File non trovato\0"
+.equ FILE_NOT_FOUND_LEN, 16
 _start:
 ###INITIALIZE PROGRAM###
 # save the stack pointer
@@ -78,8 +79,9 @@ open_fd_in:
 cmpl $0, %eax
 jl store_fd_in
 
+pushl $FILE_NOT_FOUND_LEN
+pushl $file_not_found_msg
 pushl %eax
-pushl $no_file_found_msg
 call error_and_exit
 
 store_fd_in:
@@ -203,11 +205,13 @@ convert_to_upper:
 
 #PURPOSE: This function actually prints an error message and exit
 #INPUT: The first parameter is the error code
-#       The second parameter is the error message
+#       The second parameter is the error message 
+#       The third parameter is the error message length
 
 ###STACK STUFF###
-.equ ERROR_MSG, 8 
-.equ ERROR_CODE, 12
+.equ ERROR_CODE, 8 
+.equ ERROR_MSG, 12
+.equ ERROR_MSG_LEN, 16
 
 error_and_exit:
     pushl %ebp
@@ -222,7 +226,7 @@ error_and_exit:
     movl $SYS_WRITE, %eax
     movl $STDERR, %ebx
     movl ERROR_MSG(%ebp), %ecx
-    movl $40, %edx
+    movl $ERROR_MSG_LEN, %edx
     int $LINUX_SYSCALL
 
     movl $SYS_EXIT, %eax
