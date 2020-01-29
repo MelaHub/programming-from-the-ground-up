@@ -51,7 +51,7 @@ record_read_loop:
   movl %eax, %edx
   movl ST_OUTPUT_DESCRIPTOR(%ebp), %ebx
   movl $SYS_WRITE, %eax
-  movl RECORD_FIRSTNAME + record_buffer, %ecx
+  movl $RECORD_FIRSTNAME + record_buffer, %ecx
   int $LINUX_SYSCALL
 
   pushl ST_OUTPUT_DESCRIPTOR(%ebp)
